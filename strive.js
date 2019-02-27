@@ -1,12 +1,12 @@
 const stdin = process.stdin;
 stdin.setEncoding("utf8");
 
-const creatureAdjectives = ["big", "foul smelling", "nasty", "ravenous"];
+const creatureAdjectives = ["delicate", "", "large", "enormous"];
 const creatures = [
-  "beast with sharp fangs",
-  "creature with a hairy hide",
-  "beast with fearsome horns",
-  "creature with cloven hooves"
+  "beast with dulled fangs",
+  "creature with sharp claws",
+  "beast with many fearsome horns",
+  "creature with flames dripping from its jaws"
 ];
 
 const sceneryAdjectives = ["small", "strange", "venerable", "remarkable"];
@@ -49,10 +49,15 @@ const getRandom = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
 };
 const updateMonster = () => {
-  monsterHealth = getRandom(8, 13);
-  monsterAttack = getRandom(1, 4);
-  monsterType = creatures[getRandom(0, creatures.length - 1)];
-  monsterAdj = creatureAdjectives[getRandom(0, creatureAdjectives.length - 1)];
+  let randHealth = getRandom(1,4);
+  let randAttack = getRandom(1,4);
+  //lowest health should take about two attacks (3-7 hp)
+  //highest health should take about five attacks (15-19 hp)
+  monsterHealth = getRandom((randHealth * 4)-1, (randHealth * 4) -3);
+  monsterAdj = creatureAdjectives[randHealth-1];
+
+  monsterAttack = randAttack;
+  monsterType = creatures[randAttack-1];
 };
 const updateScenery = () => {
   sceneryType = scenery[getRandom(0, scenery.length - 1)];
@@ -71,6 +76,7 @@ stdin.on("data", function(d) {
 
     console.log("you move forward");
     distTraveled++;
+   console.log(`you've traveled ${distTraveled}`)
     let randNum = getRandom(1, 40);
     if (randNum <= 6) {
       isMonster = true;
@@ -214,6 +220,7 @@ stdin.on("data", function(d) {
         console.log("you bind your wounds as best you can");
         console.log(`your health is ${playerHealth}/${maxPlayerHealth}`);
       }
+      distTraveled = distTraveled + 5;
       combatQueued = true;
     }
   }
