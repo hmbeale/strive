@@ -209,21 +209,17 @@ const slaycreature = () => {
 const resolveCombatDamage = (playerAttack, creatureAttack) => {
   console.log(`the ${creature.type} attacks`);
   creature.health = creature.health - playerAttack;
-
   //makes sure player isn't healed by negative damage
   if (creatureAttack > 0) {
     player.health = player.health - creatureAttack;
   }
-
   console.log(`your health is ${player.health}/${player.maxHealth} \n`);
 };
 const postCombatHeal = () => {
   if (player.health < player.combatStartHealth) {
     console.log("you bind your wounds as best you can");
   }
-
   playerHeal(player.combatHealValue);
-
   //fighting shouldn't make you healthier than when you started
   if (player.health > player.combatStartHealth) {
     player.health = player.combatStartHealth;
@@ -231,7 +227,7 @@ const postCombatHeal = () => {
     console.log(`your health is ${player.health}/${player.maxHealth} \n`);
 };
 const playerHeal = (healAmount) => {
-  player.health = player.health + player.combatHealValue;
+  player.health = player.health + healAmount;
   if (player.health > player.maxHealth){
     player.health = player.maxHealth;
   }
