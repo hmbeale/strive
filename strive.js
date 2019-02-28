@@ -28,7 +28,7 @@ player.attack = 3;
 player.health = 15;
 player.maxHealth = 15;
 player.fightStartHealth = 15;
-player.postCombatHeal = 2;
+player.healValue = 2;
 
 const monster = new Object();
 monster.type = "";
@@ -73,22 +73,6 @@ const slayMonster = () => {
   isMonster = false;
   monster.attack = 0;
 };
-const postCombatHealing = () => {
-  if (player.health < player.fightStartHealth) {
-    console.log("you bind your wounds as best you can");
-  }
-
-  //fighting shouldn't make you healthier than when you started
-  if (player.health > player.fightStartHealth) {
-    player.health = player.fightStartHealth;
-  }
-  console.log(`your health is ${player.health}/${player.maxHealth} \n`);
-};
-
-const playerCombatDeath = () => {
-  console.log(`the ${monster.type} slays you`);
-  process.exit();
-};
 const resolveCombatDamage = (playerAttack, monsterAttack) => {
   console.log(`the ${monster.type} attacks`);
   monster.health = monster.health - playerAttack;
@@ -100,6 +84,23 @@ const resolveCombatDamage = (playerAttack, monsterAttack) => {
 
   console.log(`your health is ${player.health}/${player.maxHealth} \n`);
 };
+const postCombatHealing = () => {
+  if (player.health < player.fightStartHealth) {
+    console.log("you bind your wounds as best you can");
+  }
+  player.health = player.health + player.healValue;
+  //fighting shouldn't make you healthier than when you started
+  if (player.health > player.fightStartHealth) {
+    player.health = player.fightStartHealth;
+  }
+  console.log(`your health is ${player.health}/${player.maxHealth} \n`);
+};
+
+const playerCombatDeath = () => {
+  console.log(`the ${monster.type} slays you`);
+  process.exit();
+};
+
 
 //introductory text
 console.log("welcome to strive \nenter '-help' for help \n");
@@ -193,7 +194,7 @@ stdin.on("data", function(d) {
 
     //flee fails
     if (randNum == 1) {
-      console.log(`the ${monster.type} catches you and mauls you badly`);
+      console.log(`the ${monster.type} catches you`);
       console.log("");
       //player deals no damage, monster deals max hp-1 damage
       resolveCombatDamage(0, player.maxHealth - 1);
@@ -210,7 +211,7 @@ stdin.on("data", function(d) {
         "you escape successfully but your " +
           "flight takes you further from your goal \n"
       );
-      player.health = player.health + player.postCombatHeal;
+      player.health = player.health + player.healValue;
 
       postCombatHealing();
 
