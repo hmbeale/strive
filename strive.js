@@ -6,8 +6,8 @@ player.attack = 3;
 player.attackPenalty = 2;
 player.defenseValue = 1;
 
-player.health = 15;
-player.maxHealth = 15;
+player.health = 30;
+player.maxHealth = 30;
 player.combatStartHealth = 15;
 player.combatHealValue = 2;
 
@@ -116,13 +116,13 @@ stdin.on('data', function(d) {
     let randNum = getRandom(1, 4);
 
     //flee fails
-    if (randNum == 1) {
+    if (randNum <= 2) {
       console.log(`the ${creature.type} catches you`);
       standardCombatRound(0, player.maxHealth - 1);
     }
 
     //flee succeeds
-    if (randNum > 1) {
+    if (randNum >= 3) {
       player.inCombat = false;
       console.log(
         'you escape successfully but your ' +
