@@ -1,112 +1,57 @@
 const stdin = process.stdin;
 stdin.setEncoding("utf8");
 
-const creatureAdjectives = ["delicate", "medium sized", "large", "hulking"];
-const creatures = [
-  "beast with dulled fangs",
-  "creature with sharp claws",
-  "beast with many fearsome horns",
-  "creature with flames dripping from its jaws"
-];
+const player = new Object();
+player.attack = 3;
+player.attackPenalty = 2;
+player.defenseValue = 1;
 
-const sceneryAdjectives = ["small", "strange", "venerable", "remarkable"];
-const scenery = ["river", "tree", "tower", "hill"];
+player.health = 15;
+player.maxHealth = 15;
+player.combatStartHealth = 15;
 
-//maybe I should rename this variable
-const dispositions = [
+player.combatHealValue = 2;
+player.inCombat = false;
+player.disposition = '';
+
+playerDispositions = [
   "you hear some birds chirping",
   "your feet ache",
   "you feel a pleasant breeze",
   "sweat trickles from your brow"
 ];
 
-const player = new Object();
-player.attack = 3;
-player.attackPenalty = 2;
-player.defenseValue = 1;
-player.attack = 3;
-player.health = 15;
-player.maxHealth = 15;
-player.fightStartHealth = 15;
-player.healValue = 2;
+const creature = new Object();
+creature.type = "";
+creature.adj = "";
+creature.health = 0;
+creature.attack = 0;
 
-const monster = new Object();
-monster.type = "";
-monster.adj = "";
-monster.health = 0;
-monster.attack = 0;
+creatureSizes = ["delicate", "medium sized", "large", "hulking"];
+creatureTypes = [
+  "beast with dulled fangs",
+  "creature with sharp claws",
+  "beast with many fearsome horns",
+  "creature with flames dripping from its jaws"
+];
 
-let isMonster = false;
-
-let distTraveled = 0;
-const distNeeded = 30;
+const scenery = new Object();
+scenery.type = '';
+scenery.adjective = '';
 
 let sceneryType = "";
 let sceneryAdj = "";
+const sceneryAdjectives = ["small", "strange", "venerable", "remarkable"];
+const scenery = ["river", "tree", "tower", "hill"];
 
-const getRandom = (min, max) => {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
-};
-const updateMonster = () => {
-  let randHealth = getRandom(1, 4);
-  let randAttack = getRandom(1, 4);
-  //lowest health should take about two attacks (3-7 hp)
-  //highest health should take about five attacks (15-19 hp)
-  monster.health = getRandom(randHealth * 4 - 1, randHealth * 4 + 3);
-  monster.adj = creatureAdjectives[randHealth - 1];
-
-  monster.attack = randAttack;
-  monster.type = creatures[randAttack - 1];
-};
-const updateScenery = () => {
-  sceneryType = scenery[getRandom(0, scenery.length - 1)];
-  sceneryAdj = sceneryAdjectives[getRandom(0, sceneryAdjectives.length - 1)];
-};
-const moveForward = () => {
-  console.log("you move forward");
-  distTraveled++;
-};
-const slayMonster = () => {
-  console.log(`you slay the ${monster.type} \n`);
-  isMonster = false;
-  monster.attack = 0;
-};
-const resolveCombatDamage = (playerAttack, monsterAttack) => {
-  console.log(`the ${monster.type} attacks`);
-  monster.health = monster.health - playerAttack;
-
-  //makes sure player isn't healed by negative damage
-  if (monsterAttack > 0) {
-    player.health = player.health - monsterAttack;
-  }
-
-  console.log(`your health is ${player.health}/${player.maxHealth} \n`);
-};
-const postCombatHealing = () => {
-  if (player.health < player.fightStartHealth) {
-    console.log("you bind your wounds as best you can");
-  }
-  player.health = player.health + player.healValue;
-  //fighting shouldn't make you healthier than when you started
-  if (player.health > player.fightStartHealth) {
-    player.health = player.fightStartHealth;
-  }
-  console.log(`your health is ${player.health}/${player.maxHealth} \n`);
-};
-
-const playerCombatDeath = () => {
-  console.log(`the ${monster.type} slays you`);
-  process.exit();
-};
-
+let distTraveled = 0;
+const distNeeded = 30;
 
 //introductory text
 console.log("welcome to strive \nenter '-help' for help \n");
 //handles user input
 stdin.on("data", function(d) {
-  if (d.trim() == "w" && !isMonster) {
+  if (d.trim() == "w" && !player.inCombat) {
     if (distTraveled >= distNeeded) {
       console.log("you made it to your destination, congratulations");
       process.exit();
@@ -115,10 +60,8 @@ stdin.on("data", function(d) {
     let randNum = getRandom(1, 40);
     if (randNum <= 6) {
       moveForward();
-      updateMonster();
-      console.log(`you encounter a ${monster.adj} ${monster.type} \n`);
-      isMonster = true;
-      player.fightStartHealth = player.health;
+      console.log(`you encounter a ${creature.adj} ${creature.type} \n`);
+      startCombat();
     }
 
     if (randNum >= 7 && randNum <= 29) {
@@ -134,16 +77,14 @@ stdin.on("data", function(d) {
 
     if (randNum >= 37 && randNum <= 38) {
       moveForward();
-      console.log(dispositions[getRandom(0, dispositions.length - 1)] + "\n");
+      updatePlayerDisposition();
+      console.log(player.disposition + '\n');
     }
 
     if (randNum == 39) {
       moveForward();
       console.log("you find some medical supplies");
-      player.health = player.health + 5;
-      if (player.health > player.maxHealth) {
-        player.health = player.maxHealth;
-      }
+      playerHeal(5);
       console.log(`your health is ${player.health}/${player.maxHealth} \n`);
     }
 
@@ -153,50 +94,50 @@ stdin.on("data", function(d) {
       player.attack++;
     }
   }
-  if (d.trim() == "a" && isMonster) {
+  if (d.trim() == "a" && player.inCombat) {
     console.log("you attack");
-    resolveCombatDamage(player.attack, monster.attack);
+    resolveCombatDamage(player.attack, creature.attack);
 
-    if (monster.health <= 0) {
-      slayMonster();
+    if (creature.health <= 0) {
+      slaycreature();
     }
 
     if (player.health <= 0) {
       playerCombatDeath();
     }
 
-    if (!isMonster) {
+    if (!player.inCombat) {
       postCombatHealing();
     }
   }
-  if (d.trim() == "d" && isMonster) {
+  if (d.trim() == "d" && player.inCombat) {
     console.log("you defend");
     resolveCombatDamage(
       player.attack - player.attackPenalty,
-      monster.attack - player.defenseValue
+      creature.attack - player.defenseValue
     );
 
-    if (monster.health <= 0) {
-      slayMonster();
+    if (creature.health <= 0) {
+      slaycreature();
     }
 
     if (player.health <= 0) {
       playerCombatDeath();
     }
 
-    if (!isMonster) {
+    if (!player.inCombat) {
       postCombatHealing();
     }
   }
-  if (d.trim() == "f" && isMonster) {
+  if (d.trim() == "f" && player.inCombat) {
     console.log("you flee");
     let randNum = getRandom(1, 4);
 
     //flee fails
     if (randNum == 1) {
-      console.log(`the ${monster.type} catches you`);
+      console.log(`the ${creature.type} catches you`);
       console.log("");
-      //player deals no damage, monster deals max hp-1 damage
+      //player deals no damage, creature deals max hp minus one damage
       resolveCombatDamage(0, player.maxHealth - 1);
       if (player.health <= 0) {
         playerCombatDeath();
@@ -205,14 +146,12 @@ stdin.on("data", function(d) {
 
     //flee succeeds
     if (randNum > 1) {
-      isMonster = false;
+      player.inCombat = false;
 
       console.log(
         "you escape successfully but your " +
           "flight takes you further from your goal \n"
       );
-      player.health = player.health + player.healValue;
-
       postCombatHealing();
 
       distTraveled = distTraveled - 5;
@@ -229,3 +168,75 @@ stdin.on("data", function(d) {
     console.log("good luck");
   }
 });
+
+const getRandom = (min, max) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
+};
+const startCombat = () =>{
+  createCreature();
+  player.combatStartHealth = player.health;
+  player.inCombat = true;
+}
+const createcreature = () => {
+  let randHealth = getRandom(1, 4);
+  let randAttack = getRandom(1, 4);
+  //lowest health should take about two attacks (3-7 hp)
+  //highest health should take about five attacks (15-19 hp)
+  creature.health = getRandom((randHealth * 4) - 1, (randHealth * 4) + 3);
+  creature.adj = creatureSizes[randHealth - 1];
+
+  creature.attack = randAttack;
+  creature.type = creatureTypes[randAttack - 1];
+};
+const updateScenery = () => {
+  sceneryType = scenery[getRandom(0, scenery.length - 1)];
+  sceneryAdj = sceneryAdjectives[getRandom(0, sceneryAdjectives.length - 1)];
+};
+const updatePlayerDisposition = () =>{
+  player.disposition = playerDispositions[getRandom(0, player.dispositions.length - 1)];
+}
+const moveForward = () => {
+  console.log("you move forward");
+  distTraveled++;
+};
+const slaycreature = () => {
+  console.log(`you slay the ${creature.type} \n`);
+  player.inCombat = false;
+  creature.attack = 0;
+};
+const resolveCombatDamage = (playerAttack, creatureAttack) => {
+  console.log(`the ${creature.type} attacks`);
+  creature.health = creature.health - playerAttack;
+
+  //makes sure player isn't healed by negative damage
+  if (creatureAttack > 0) {
+    player.health = player.health - creatureAttack;
+  }
+
+  console.log(`your health is ${player.health}/${player.maxHealth} \n`);
+};
+const postCombatHeal = () => {
+  if (player.health < player.combatStartHealth) {
+    console.log("you bind your wounds as best you can");
+  }
+
+  playerHeal(player.combatHealValue);
+
+  //fighting shouldn't make you healthier than when you started
+  if (player.health > player.combatStartHealth) {
+    player.health = player.combatStartHealth;
+  }
+    console.log(`your health is ${player.health}/${player.maxHealth} \n`);
+};
+const playerHeal = (healAmount) => {
+  player.health = player.health + player.combatHealValue;
+  if (player.health > player.maxHealth){
+    player.health = player.maxHealth;
+  }
+}
+const playerCombatDeath = () => {
+  console.log(`the ${creature.type} slays you`);
+  process.exit();
+};
