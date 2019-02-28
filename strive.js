@@ -1,5 +1,5 @@
 const stdin = process.stdin;
-stdin.setEncoding("utf8");
+stdin.setEncoding('utf8');
 
 const player = new Object();
 player.attack = 3;
@@ -9,62 +9,62 @@ player.defenseValue = 1;
 player.health = 15;
 player.maxHealth = 15;
 player.combatStartHealth = 15;
-
 player.combatHealValue = 2;
+
 player.inCombat = false;
-player.disposition = "";
+player.disposition = '';
+player.distanceTraveled = 0;
 
 const playerDispositions = [
-  "you hear some birds chirping",
-  "your feet ache",
-  "you feel a pleasant breeze",
-  "sweat trickles from your brow"
+  'you hear some birds chirping',
+  'your feet ache',
+  'you feel a pleasant breeze',
+  'sweat trickles from your brow'
 ];
 
 const creature = new Object();
-creature.type = "";
-creature.adj = "";
+creature.type = '';
+creature.adjective = '';
 creature.health = 0;
 creature.attack = 0;
 
-const creatureSizes = ["delicate", "medium sized", "large", "hulking"];
+const creatureSizes = ['delicate', 'medium sized', 'large', 'hulking'];
 const creatureTypes = [
-  "beast with dulled fangs",
-  "creature with sharp claws",
-  "beast with many fearsome horns",
-  "creature with flames dripping from its jaws"
+  'beast with dulled fangs',
+  'creature with sharp claws',
+  'beast with many fearsome horns',
+  'creature with flames dripping from its jaws'
 ];
 
 const scenery = new Object();
-scenery.adjective = "";
-scenery.type = "";
+scenery.adjective = '';
+scenery.type = '';
 
-const sceneryAdjectives = ["small", "strange", "venerable", "remarkable"];
-const sceneryTypes = ["river", "tree", "tower", "hill"];
+const sceneryAdjectives = ['small', 'strange', 'dark', 'sunlit'];
+const sceneryTypes = ['river', 'tree', 'tower', 'hill'];
 
-let distTraveled = 0;
 const distNeeded = 30;
 
 //introductory text
-console.log("welcome to strive \nenter '-help' for help \n");
+console.log('welcome to strive \nenter '-help' for help \n');
 //handles user input
-stdin.on("data", function(d) {
-  if (d.trim() == "w" && !player.inCombat) {
-    if (distTraveled >= distNeeded) {
-      console.log("you made it to your destination, congratulations");
+stdin.on('data', function(d) {
+  if (d.trim() == 'w' && !player.inCombat) {
+    if (player.distanceTraveled >= distNeeded) {
+      console.log('you made it to your destination, congratulations');
       process.exit();
     }
 
     let randNum = getRandom(1, 40);
     if (randNum <= 6) {
       moveForward();
-      console.log(`you encounter a ${creature.adj} ${creature.type} \n`);
+      console.log(`you encounter a ${creature.adjective} ${creature.type} \n`);
       startCombat();
     }
 
     if (randNum >= 7 && randNum <= 29) {
       moveForward();
-      console.log("");
+      console.log('');
     }
 
     if (randNum >= 30 && randNum <= 36) {
@@ -76,41 +76,41 @@ stdin.on("data", function(d) {
     if (randNum >= 37 && randNum <= 38) {
       moveForward();
       updatePlayerDisposition();
-      console.log(player.disposition + "\n");
+      console.log(player.disposition + '\n');
     }
 
     if (randNum == 39) {
       moveForward();
-      console.log("you find some medical supplies");
+      console.log('you find some medical supplies');
       playerHeal(5);
       console.log(`your health is ${player.health}/${player.maxHealth} \n`);
     }
 
     if (randNum == 40) {
       moveForward();
-      console.log("you find a better weapon \n");
+      console.log('you find a better weapon \n');
       player.attack++;
     }
   }
-  if (d.trim() == "a" && player.inCombat) {
-    console.log("you attack");
-    standardCombat(player.attack, creature.attack);
+  if (d.trim() == 'a' && player.inCombat) {
+    console.log('you attack');
+    standardCombatRound(player.attack, creature.attack);
   }
-  if (d.trim() == "d" && player.inCombat) {
-    console.log("you defend");
-    standardCombat(
+  if (d.trim() == 'd' && player.inCombat) {
+    console.log('you defend');
+    standardCombatRound(
       player.attack - player.attackPenalty,
       creature.attack - player.defenseValue
     );
   }
-  if (d.trim() == "f" && player.inCombat) {
-    console.log("you flee");
+  if (d.trim() == 'f' && player.inCombat) {
+    console.log('you flee');
     let randNum = getRandom(1, 4);
 
     //flee fails
     if (randNum == 1) {
       console.log(`the ${creature.type} catches you`);
-      console.log("");
+      console.log('');
       //player deals no damage, creature deals max hp minus one damage
       resolveCombatDamage(0, player.maxHealth - 1);
       if (player.health <= 0) {
@@ -122,22 +122,22 @@ stdin.on("data", function(d) {
     if (randNum > 1) {
       player.inCombat = false;
       console.log(
-        "you escape successfully but your " +
-          "flight takes you further from your goal \n"
+        'you escape successfully but your ' +
+          'flight takes you further from your goal \n'
       );
       postCombatHealing();
-      distTraveled = distTraveled - 5;
+      player.distanceTraveled = player.distanceTraveled - 5;
     }
   }
-  if (d.trim() == "-help") {
-    console.log("you are journeying through a land of some peril");
+  if (d.trim() == '-help') {
+    console.log('you are journeying through a land of some peril');
     console.log(
-      "enter w to move forward, a to attack, d to defend, and f to flee"
+      'enter w to move forward, a to attack, d to defend, and f to flee'
     );
     console.log(
-      "note that defending does deals damage, just less than attacking"
+      'note that defending does deals damage, just less than attacking'
     );
-    console.log("good luck");
+    console.log('good luck');
   }
 });
 
@@ -148,8 +148,8 @@ const getRandom = (min, max) => {
 };
 
 const moveForward = () => {
-  console.log("you move forward");
-  distTraveled++;
+  console.log('you move forward');
+  player.distanceTraveled++;
 };
 
 const updateScenery = () => {
@@ -175,13 +175,13 @@ const createcreature = () => {
   //lowest health should take about two attacks (3-7 hp)
   //highest health should take about five attacks (15-19 hp)
   creature.health = getRandom(randHealth * 4 - 1, randHealth * 4 + 3);
-  creature.adj = creatureSizes[randHealth - 1];
+  creature.adjective = creatureSizes[randHealth - 1];
 
   creature.attack = randAttack;
   creature.type = creatureTypes[randAttack - 1];
 };
 
-const standardCombat = (playerAttack, creatureAttack) => {
+const standardCombatRound = (playerAttack, creatureAttack) => {
   resolveCombatDamage(playerAttack, creatureAttack);
   if (creature.health <= 0) {
     slaycreature();
@@ -217,7 +217,7 @@ const playerCombatDeath = () => {
 
 const postCombatHeal = () => {
   if (player.health < player.combatStartHealth) {
-    console.log("you bind your wounds as best you can");
+    console.log('you bind your wounds as best you can');
   }
   playerHeal(player.combatHealValue);
   //fighting shouldn't make you healthier than when you started
