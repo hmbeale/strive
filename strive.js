@@ -40,26 +40,31 @@ const scenery = new Object();
 scenery.adjective = '';
 scenery.type = '';
 
-const sceneryAdjectives = ['small', 'strange', 'dark', 'sunlit'];
-const sceneryTypes = ['river', 'tree', 'tower', 'hill'];
+const sceneryAdjectives = ['small', 'big', 'dark', 'sunlit'];
+const sceneryTypes = ['river', 'pool of water', 'tree', 'tower',
+                      'boulder','hill', 'cliff', 'cloud'];
 
 const distNeeded = 30;
 
-//introductory text
-console.log('welcome to strive \nenter '-help' for help \n');
-//handles user input
+console.log('welcome to strive \nenter \'-help\' for help \n');
+//handles player input
+//player can move forward, attack, defend, and flee
+//each move forward procedurally generates a new scenario
+//  based on a 'roll' from 1 to 40
 stdin.on('data', function(d) {
   if (d.trim() == 'w' && !player.inCombat) {
+
     if (player.distanceTraveled >= distNeeded) {
       console.log('you made it to your destination, congratulations');
       process.exit();
     }
 
     let randNum = getRandom(1, 40);
+
     if (randNum <= 6) {
       moveForward();
-      console.log(`you encounter a ${creature.adjective} ${creature.type} \n`);
       startCombat();
+      console.log(`you encounter a ${creature.adjective} ${creature.type} \n`);
     }
 
     if (randNum >= 7 && randNum <= 29) {
@@ -92,10 +97,12 @@ stdin.on('data', function(d) {
       player.attack++;
     }
   }
+
   if (d.trim() == 'a' && player.inCombat) {
     console.log('you attack');
     standardCombatRound(player.attack, creature.attack);
   }
+
   if (d.trim() == 'd' && player.inCombat) {
     console.log('you defend');
     standardCombatRound(
@@ -103,6 +110,7 @@ stdin.on('data', function(d) {
       creature.attack - player.defenseValue
     );
   }
+
   if (d.trim() == 'f' && player.inCombat) {
     console.log('you flee');
     let randNum = getRandom(1, 4);
@@ -110,12 +118,7 @@ stdin.on('data', function(d) {
     //flee fails
     if (randNum == 1) {
       console.log(`the ${creature.type} catches you`);
-      console.log('');
-      //player deals no damage, creature deals max hp minus one damage
-      resolveCombatDamage(0, player.maxHealth - 1);
-      if (player.health <= 0) {
-        playerCombatDeath();
-      }
+      standardCombatRound(0, player.maxHealth - 1);
     }
 
     //flee succeeds
@@ -123,9 +126,9 @@ stdin.on('data', function(d) {
       player.inCombat = false;
       console.log(
         'you escape successfully but your ' +
-          'flight takes you further from your goal \n'
+          'flight takes you away from your goal \n'
       );
-      postCombatHealing();
+      postCombatHeal();
       player.distanceTraveled = player.distanceTraveled - 5;
     }
   }
@@ -137,7 +140,7 @@ stdin.on('data', function(d) {
     console.log(
       'note that defending does deals damage, just less than attacking'
     );
-    console.log('good luck');
+    console.log('good luck \n');
   }
 });
 
@@ -153,14 +156,14 @@ const moveForward = () => {
 };
 
 const updateScenery = () => {
-  scenery.type = scenery[getRandom(0, scenery.length - 1)];
+  scenery.type = sceneryTypes[getRandom(0, sceneryTypes.length - 1)];
   scenery.adjective =
     sceneryAdjectives[getRandom(0, sceneryAdjectives.length - 1)];
 };
 
 const updatePlayerDisposition = () => {
   player.disposition =
-    playerDispositions[getRandom(0, player.dispositions.length - 1)];
+    playerDispositions[getRandom(0, playerDispositions.length - 1)];
 };
 
 const startCombat = () => {
@@ -169,7 +172,7 @@ const startCombat = () => {
   player.inCombat = true;
 };
 
-const createcreature = () => {
+const createCreature = () => {
   let randHealth = getRandom(1, 4);
   let randAttack = getRandom(1, 4);
   //lowest health should take about two attacks (3-7 hp)
@@ -190,7 +193,7 @@ const standardCombatRound = (playerAttack, creatureAttack) => {
     playerCombatDeath();
   }
   if (!player.inCombat) {
-    postCombatHealing();
+    postCombatHeal();
   }
 };
 
