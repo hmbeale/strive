@@ -75,6 +75,37 @@ const slayMonster = () => {
   monster.attack = 0;
   combatQueued = true;
 }
+const postCombatHealing = () => {
+  //fighting shouldn't make you healthier than when you started
+  if (player.health > player.fightStartHealth) {
+    player.health = player.fightStartHealth;
+  }
+  if (player.health < player.fightStartHealth) {
+    console.log("you bind your wounds as best you can");
+    console.log(`your health is ${player.health}/${player.maxHealth}`);
+  }
+}
+const combatStart = () => {
+  console.log(`the ${monster.type} attacks`);
+  if (combatQueued) {
+    player.fightStartHealth = player.health;
+  }
+  combatQueued = false;
+}
+const playerCombatDeath = () => {
+  console.log(`the ${monster.type} slays you`);
+  process.exit();
+}
+const resolveCombatDamage = (playerAttack, monsterAttack) => {
+  monster.health = monster.health - playerAttack;
+
+  //makes sure player isn't healed by negative damage
+  if (monsterAttack > 0){
+    player.health = player.health - monsterAttack;
+  }
+
+  console.log(`your health is ${player.health}/${player.maxHealth}`);
+}
 
 //introductory text
 console.log("welcome to strive \nenter '-help' for help \n");
@@ -92,7 +123,6 @@ stdin.on("data", function(d) {
       updateMonster();
       console.log(`you encounter a ${monster.adj} ${monster.type} \n`);
       isMonster = true;
-
     }
 
     if (randNum >=7 && randNum <= 29){
@@ -129,88 +159,38 @@ stdin.on("data", function(d) {
   }
   if (d.trim() == "a" && isMonster) {
     console.log("you attack");
-    console.log(`the ${monster.type} attacks`);
-    if (combatQueued) {
-      player.fightStartHealth = player.health;
-    }
-    combatQueued = false;
-
-    monster.health = monster.health - player.attack;
-    player.health = player.health - monster.attack;
-    console.log(`your health is ${player.health}/${player.maxHealth}`);
+    combatStart();
+    resolveCombatDamage(player.attack, monster.attack);
 
     if (monster.health <= 0) { slayMonster(); }
 
-    if (player.health <= 0) {
-      console.log(`the ${monster.type} slays you`);
-      process.exit();
-    }
-    //it's possible player and monster are slain simultaneously
-    if (!isMonster) {
-      if (player.health < player.fightStartHealth) {
-        console.log("you bind your wounds as best you can");
-      }
-      player.health = player.health + player.postCombatHeal;
-      if (player.health > player.fightStartHealth) {
-        player.health = player.fightStartHealth;
-      }
-      console.log(`your health is ${player.health}/${player.maxHealth} \n`);
-    }
+    if (player.health <= 0) { playerCombatDeath();}
+
+    if (!isMonster) {  postCombatHealing(); }
   }
   if (d.trim() == "d" && isMonster) {
     console.log("you defend");
-    console.log(`the ${monster.type} attacks`);
-    if (combatQueued) {
-      player.fightStartHealth = player.health;
-    }
-    combatQueued = false;
-
-    monster.health = monster.health - (player.attack - player.attackPenalty);
-
-    //makes sure player isn't healed by negative damage
-    if (monster.attack - player.defenseValue > 0) {
-      player.health = player.health - (monster.attack - player.defenseValue);
-    }
-
-    console.log(`your health is ${player.health}/${player.maxHealth}`);
+    combatStart();
+    resolveCombatDamage(player.attack - player.attackPenalty, monster.attack - player.defenseValue);
 
     if (monster.health <= 0) { slayMonster(); }
 
-    if (player.health <= 0) {
-      console.log(`the ${monster.type} slays you`);
-      process.exit();
-    }
+    if (player.health <= 0) { playerCombatDeath(); }
 
-    if (!isMonster) {
-      if (player.health < player.fightStartHealth) {
-        console.log("you bind your wounds as best you can");
-      }
-      player.health = player.health + player.postCombatHeal;
-
-      //fighting shouldn't make you healthier than when you started
-      if (player.health > player.fightStartHealth) {
-        player.health = player.fightStartHealth;
-      }
-      console.log(`your health is ${player.health}/${player.maxHealth}`);
-    }
+    if (!isMonster) { postCombatHealing(); }
   }
   if (d.trim() == "f" && isMonster) {
     console.log("you flee");
-    if (combatQueued) {
-      player.fightStartHealth = player.health;
-    }
+    combatStart();
+
     let randNum = getRandom(1, 4);
-    combatQueued = false;
 
     //flee fails
     if (randNum == 1) {
       console.log(`the ${monster.type} catches you and mauls you badly`);
-      player.health = player.health - (player.maxHealth - 1);
-      console.log(`your health is ${player.health}/${player.maxHealth}`);
-      if (player.health <= 0) {
-        console.log(`the ${monster.type} slays you`);
-        process.exit();
-      }
+      //player deals no damage, monster deals max hp-1 damage
+      resolveCombatDamage(0, player.maxHealth -1);
+      if (player.health <= 0) { playerCombatDeath(); }
     }
 
     //flee succeeds
@@ -222,14 +202,8 @@ stdin.on("data", function(d) {
       " flight takes you further from your goal");
       player.health = player.health + player.postCombatHeal;
 
-      //fighting shouldn't make you healthier than when you started
-      if (player.health > player.fightStartHealth) {
-        player.health = player.fightStartHealth;
-      }
-      if (player.health < player.fightStartHealth) {
-        console.log("you bind your wounds as best you can");
-        console.log(`your health is ${player.health}/${player.maxHealth}`);
-      }
+      postCombatHealing();
+
       distTraveled = distTraveled - 5;
       combatQueued = true;
     }
@@ -240,7 +214,7 @@ stdin.on("data", function(d) {
     console.log(
       "enter w to move forward, a to attack, d to defend, and f to flee"
     );
-    console.log("note that defending deals damage, just less than attacking");
+    console.log("note that defending does deals damage, just less than attacking");
     console.log("good luck");
   }
 });
