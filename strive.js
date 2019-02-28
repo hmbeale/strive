@@ -41,8 +41,8 @@ scenery.adjective = '';
 scenery.type = '';
 
 const sceneryAdjectives = ['small', 'big', 'dark', 'sunlit'];
-const sceneryTypes = ['river', 'pool of water', 'tree', 'tower',
-                      'boulder','hill', 'cliff', 'cloud'];
+const sceneryTypes = ['river', 'pool of water', 'tree',
+                      'tower', 'hill', 'cliff', 'cloud'];
 
 const distNeeded = 30;
 
