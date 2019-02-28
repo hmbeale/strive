@@ -14,7 +14,7 @@ player.combatHealValue = 2;
 player.inCombat = false;
 player.disposition = '';
 
-playerDispositions = [
+const playerDispositions = [
   "you hear some birds chirping",
   "your feet ache",
   "you feel a pleasant breeze",
@@ -27,8 +27,8 @@ creature.adj = "";
 creature.health = 0;
 creature.attack = 0;
 
-creatureSizes = ["delicate", "medium sized", "large", "hulking"];
-creatureTypes = [
+const creatureSizes = ["delicate", "medium sized", "large", "hulking"];
+const creatureTypes = [
   "beast with dulled fangs",
   "creature with sharp claws",
   "beast with many fearsome horns",
@@ -39,10 +39,8 @@ const scenery = new Object();
 scenery.type = '';
 scenery.adjective = '';
 
-let sceneryType = "";
-let sceneryAdj = "";
 const sceneryAdjectives = ["small", "strange", "venerable", "remarkable"];
-const scenery = ["river", "tree", "tower", "hill"];
+const sceneryTypes = ["river", "tree", "tower", "hill"];
 
 let distTraveled = 0;
 const distNeeded = 30;
@@ -72,7 +70,7 @@ stdin.on("data", function(d) {
     if (randNum >= 30 && randNum <= 36) {
       moveForward();
       updateScenery();
-      console.log(`you see a ${sceneryAdj} ${sceneryType} \n`);
+      console.log(`you see a ${scenery.adjective} ${scenery.type} \n`);
     }
 
     if (randNum >= 37 && randNum <= 38) {
@@ -191,8 +189,8 @@ const createcreature = () => {
   creature.type = creatureTypes[randAttack - 1];
 };
 const updateScenery = () => {
-  sceneryType = scenery[getRandom(0, scenery.length - 1)];
-  sceneryAdj = sceneryAdjectives[getRandom(0, sceneryAdjectives.length - 1)];
+  scenery.type = scenery[getRandom(0, scenery.length - 1)];
+  scenery.adjective = sceneryAdjectives[getRandom(0, sceneryAdjectives.length - 1)];
 };
 const updatePlayerDisposition = () =>{
   player.disposition = playerDispositions[getRandom(0, player.dispositions.length - 1)];
