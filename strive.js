@@ -37,7 +37,6 @@ monster.health = 0;
 monster.attack = 0;
 
 let isMonster = false;
-let combatQueued = true;
 
 let distTraveled = 0;
 const distNeeded = 30;
@@ -73,7 +72,6 @@ const slayMonster = () => {
   console.log(`you slay the ${monster.type} \n`);
   isMonster = false;
   monster.attack = 0;
-  combatQueued = true;
 };
 const postCombatHealing = () => {
   if (player.health < player.fightStartHealth) {
@@ -86,18 +84,13 @@ const postCombatHealing = () => {
   }
   console.log(`your health is ${player.health}/${player.maxHealth} \n`);
 };
-const combatStart = () => {
-  console.log(`the ${monster.type} attacks`);
-  if (combatQueued) {
-    player.fightStartHealth = player.health;
-  }
-  combatQueued = false;
-};
+
 const playerCombatDeath = () => {
   console.log(`the ${monster.type} slays you`);
   process.exit();
 };
 const resolveCombatDamage = (playerAttack, monsterAttack) => {
+  console.log(`the ${monster.type} attacks`);
   monster.health = monster.health - playerAttack;
 
   //makes sure player isn't healed by negative damage
@@ -124,6 +117,7 @@ stdin.on("data", function(d) {
       updateMonster();
       console.log(`you encounter a ${monster.adj} ${monster.type} \n`);
       isMonster = true;
+      player.fightStartHealth = player.health;
     }
 
     if (randNum >= 7 && randNum <= 29) {
@@ -160,7 +154,6 @@ stdin.on("data", function(d) {
   }
   if (d.trim() == "a" && isMonster) {
     console.log("you attack");
-    combatStart();
     resolveCombatDamage(player.attack, monster.attack);
 
     if (monster.health <= 0) {
@@ -177,7 +170,6 @@ stdin.on("data", function(d) {
   }
   if (d.trim() == "d" && isMonster) {
     console.log("you defend");
-    combatStart();
     resolveCombatDamage(
       player.attack - player.attackPenalty,
       monster.attack - player.defenseValue
@@ -197,8 +189,6 @@ stdin.on("data", function(d) {
   }
   if (d.trim() == "f" && isMonster) {
     console.log("you flee");
-    combatStart();
-
     let randNum = getRandom(1, 4);
 
     //flee fails
@@ -225,7 +215,6 @@ stdin.on("data", function(d) {
       postCombatHealing();
 
       distTraveled = distTraveled - 5;
-      combatQueued = true;
     }
   }
   if (d.trim() == "-help") {
