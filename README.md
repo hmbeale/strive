@@ -3,8 +3,4 @@
 node strive.js
 ```
 
-maybe
-```
-npm i
-```
-also
+enjoy
