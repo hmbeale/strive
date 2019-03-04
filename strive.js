@@ -116,7 +116,7 @@ stdin.on('data', function(d) {
     let randNum = getRandom(1, 4);
 
     //flee fails
-    if (randNum = 1) {
+    if (randNum == 1) {
       console.log(`the ${creature.type} catches you`);
       standardCombatRound(0, player.maxHealth - 1);
     }
